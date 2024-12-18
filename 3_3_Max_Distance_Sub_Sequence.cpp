@@ -1,41 +1,49 @@
+/* Max Distance SubSequence: Cho dãy a. và tham số C
+ Chọn C phần tử từ a[] sao cho khoảng cách nhỏ nhất giữa 2 phần tử bất kì là lớn nhất*/
+
 #include<bits/stdc++.h>
 using namespace std;
-#define MAXN 100005
 
 int T;
-int N,C;
-int a[MAXN];
+int n,c;
+int a[100007];
 
 bool check(int distance) {
-    int sl = 1;
-    int point = a[1];
+    int sl = 1;			// sô lượng phần tử đã chọn (từ phần tử đầu tiên)
+    int point = a[1];   // giá trị phần tử đầu tiên
 
-    while (true) {
-        point += distance;
-        auto it = lower_bound(a + 1, a + 1 + N, point);
+    while(1){
+    	// tìm phần tử nhỏ nhất trong a[] >= point+distance (thông qua tìm kiếm nhị phân)
+        point += distance; 
+        auto it = lower_bound(a+1, a+1+n, point); 
+  
+        if (it == a+1+n) return false; // Không còn phần tử >= point+distance -> FALSE
+        
+        sl++; // Tìm được thì tăng sl
+        if (sl>=c) return true;  // Chọn đủ C rồi -> TRUE 
 
-        // Nếu không còn phần tử nào lớn hơn hoặc bằng point
-        if (it == a + 1 + N) return false;
-        sl++; // Tăng số lượng phần tử đã chọn
-
-        // Nếu đã chọn đủ C phần tử
-        if (sl >= C) return true;
-
-        // Cập nhật point cho vòng lặp tiếp theo
-        point = *it; // Chọn phần tử hiện tại
+        point = *it; // Cập nhật lại point và tiếp tục lặp
     }
 }
 
-int MaxDistance(){
-    int l = 0;
-    int r = a[N] - a[1];
+void solve(){
+	// Sắp xếp a[]
+    sort(a+1, a+1+n);
+    // Tìm giá trị mid lớn nhất thoả mãn (tìm kiếm nhị phân)
+	int l = 0;
+    int r = a[n]-a[1];
     while(l<=r){
-        int mid =l + (r - l)/2;
-        if(check(mid)) l = mid + 1;
-        else r = mid - 1;
+        int m = l + (r-l)/2;
+        if(check(m)) l = m+1; else r = m-1;
     }
-    return r;
+    cout << r << endl;
 }
+
+void input(){
+	cin >> n >> c;
+    for(int i=1; i<=n; i++) cin >> a[i];
+}
+
 int main(){
     ios_base::sync_with_stdio;
     cin.tie(NULL); cout.tie(NULL);
@@ -43,10 +51,7 @@ int main(){
 
     cin >> T;
     while(T--){
-        cin >> N >> C;
-        for(int i = 1; i <= N; i++) cin >> a[i];
-        sort(a + 1, a + 1 + N);
-        cout << MaxDistance() << endl;
+        input();
+        solve();
     }
-    return 0;
 }

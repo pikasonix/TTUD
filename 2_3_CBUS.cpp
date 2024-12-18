@@ -1,81 +1,78 @@
-#include <bits/stdc++.h>
+/* CBUS: tính khoảng cách ngắn nhất để phục vụ n khách và quay về điểm 0 (mỗi điểm thăm 1 lần)
+có n khách hàng cần đi từ điểm i -> i+n, BUS xuất phát từ điểm 0 (max <cap> hành khách)
+cho ma trận c[i][j] khoảng cách di chuyển từ i -> j */
 
+#include <bits/stdc++.h>
 using namespace std;
+
 #define MAX 100
 
-int N;// number of requests (1,2,...,N). Request i has pickup point i and drop-off point i + N​
-int cap;// number of places of the bus
-int A[2*MAX+1][2*MAX+1];
-int x[MAX];
-int appear[MAX];// marking
-int load;
-int f;
-int f_best;
-int x_best[MAX];
-int cmin;
+int n, cap, load;           // n: số khách, cap: tổng sức chứa xe, load: số khách trên xe hiện tại
+int A[2*MAX+1][2*MAX+1];    // ma trận khoảng cách
+int x[MAX], visited[MAX];   // x[]: lưu lộ trình hiện tại, visited[] đánh dấu điểm đã qua 
+int S, S_opt = 1e9;         // S: tổng quãng đường hiện tại, S_opt: quãng đường tối ưu
+//int x_opt[MAX];             // mảng lưu lộ trình tối ưu
+int cmin = 1e9;             // khoảng cách ngắn nhất giữa 2 điểm
+
+/* solution: cập nhật best option */
+void solution(){
+    if(S + A[x[2*n]][0] < S_opt){ // S: quãng đường hiện tại + quãng đường quay về 0
+        S_opt = S + A[x[2*n]][0];
+        //for(int i = 0; i <= 2*n; i++) x_opt[i] = x[i];
+        //printf("update best %d\n",S_opt);
+    }
+}
+
+/* check: kiểm tra điểm tiếp theo 
+		điểm v chưa visited
+		(v>n)  v là điểm trả khách -> v-n đã visited
+		(v<=n) v là điểm đón khách -> xe đủ chỗ  */
+bool check(int v, int k) {
+    if (visited[v]) return false;
+    if (v > n) {
+        if (!visited[v-n]) return false;
+    } else {
+        if (load+1 > cap) return false;
+    }
+    return true;
+}
+
+void TRY(int k){
+    for(int v=1; v<=2*n; v++){
+        if(check(v,k)){
+            x[k] = v;						// gán thử
+            S += A[x[k-1]][x[k]];			// update 
+            if(v <= n) load++; else load--; //
+            visited[v] = 1;					//
+            if(k == 2*n) solution();  							// -> hoàn thành
+            	else if(S + (2*n+1-k)*cmin < S_opt) TRY(k+1);   // -> cắt nhánh (nếu 2n+1-k điểm còn lại theo cmin còn xa hơn S_opt thì thôi)
+            if(v <= n) load--; else load++;	// remove update
+            visited[v] = 0;					//
+            S -= A[x[k-1]][x[k]];			//
+        }
+    }
+}
+
+//void print(){
+//    for(int i = 0; i <= 2*n; i++) printf("%d ",x_opt[i]);
+//}
 
 void input(){
     ios_base::sync_with_stdio;
     cin.tie(NULL); cout.tie(NULL);
     if (fopen("input.txt", "r")) freopen("input.txt", "r", stdin);
     
-    scanf("%d%d",&N,&cap);
-    cmin = 1000000;
-    for(int i = 0; i <= 2*N;  i++){
-        for(int j= 0; j <= 2*N; j++){
-            scanf("%d",&A[i][j]);
-            if(i != j && cmin > A[i][j]) cmin = A[i][j];
+    cin >> n >> cap;
+    for(int i=0; i<=2*n; i++){
+        for(int j=0; j<=2*n; j++){
+            cin >> A[i][j];
+            if (i != j) cmin = min(cmin,A[i][j]);
         }
     }
-}
-
-int check(int v, int k){
-    if(appear[v] == 1) return 0;
-    if(v >N){
-        if(!appear[v-N]) return 0;
-    }else if(load + 1 > cap) return 0;
-    return 1;
-}
-
-void solution(){
-    if(f + A[x[2*N]][0] < f_best){
-        f_best = f + A[x[2*N]][0];
-        for(int i = 0; i <= 2*N; i++) x_best[i] = x[i];
-        //printf("update best %d\n",f_best);
-    }
-}
-
-void TRY(int k){
-    for(int v = 1; v <=2*N; v++){
-        if(check(v,k)){
-            x[k] = v;
-            f += A[x[k-1]][x[k]];
-            if(v <= N) load += 1; else load += -1;
-            appear[v] = 1;
-            if(k == 2*N) solution();
-            else if(f + (2*N+1-k)*cmin < f_best) TRY(k+1);
-            if(v <= N) load -= 1; else load -= -1;
-            appear[v] = 0;
-            f -= A[x[k-1]][x[k]];
-        }
-    }
-}
-
-void solve(){
-    load = 0;
-    f = 0;
-    f_best = 1000000;
-    for(int i = 1; i <= 2*N; i++) appear[i] = 0;
-    x[0] = 0;// starting point
-    TRY(1);
-    printf("%d",f_best);
-}
-
-void print(){
-    for(int i = 0; i <= 2*N; i++) printf("%d ",x_best[i]);
 }
 
 int main(){
     input();
-    solve();
+    TRY(1);
+    cout << S_opt;
 }

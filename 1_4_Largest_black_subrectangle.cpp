@@ -1,54 +1,52 @@
+/*Largest black subrectangle: tìm hình chữ nhật con có diện tích lớn nhất */
 #include <bits/stdc++.h>
 using namespace std;
 
-int n, m;
-int A[1000][1000];
-int maxS;
+int n, m;           // kích thước hcn lớn
+int A[1000][1000];  // ma trận A[][] = 1 -> đen, A[][] = 0 -> trắng
+int result;         // diện tích hcn đen lớn nhất
 
+/* solve: Tìm diện tích lớn nhất trong 1 histogram */
 void solve(int row[]) {
-    stack<int> res;
-    int top_value, S = 0;
-    int j = 0;
+    stack<int> st;
+    int top_value, S;
+    int j;
     while (j < n) {
-        if (res.empty() || row[res.top()] <= row[j]) res.push(j++);
-            else {
-                top_value = row[res.top()];
-                res.pop();
-                if (!res.empty()) S = top_value*(j-res.top()-1);
+        if (st.empty() || row[st.top()] <= row[j]) st.push(j++); // nếu phần tử hiện tại >= st.top() -> push vào stack
+            else {                                               // nếu nhỏ hơn thì tính S = top*(khoảng cách j -> top)
+                top_value = row[st.top()];
+                st.pop();
+                if (!st.empty()) S = top_value*(j-st.top()-1);
                     else S = top_value * j;
-                maxS = max(S, maxS);
+                result = max(S, result);
             }
     }
-    while (!res.empty()) {
-        top_value = row[res.top()];
-        res.pop();
-        if (!res.empty()) S = top_value*(j-res.top()-1);
+    // Sau khi duyệt xong -> tính S cho các phần tử còn lại trong stack
+    while (!st.empty()) {
+        top_value = row[st.top()];
+        st.pop();
+        if (!st.empty()) S = top_value*(j-st.top()-1);
             else S = top_value * j;
-        maxS = max(S, maxS);
+        result = max(S, result);
     }
 }
 
-int main(){
+void input(){
     ios_base::sync_with_stdio;
     cin.tie(NULL); cout.tie(NULL);
     if (fopen("input.txt", "r")) freopen("input.txt", "r", stdin);
 
     cin >> n >> m;
     for (int i=0; i<m; i++)
-        for (int j=0; j<n; j++)
+        for (int j=0; j<n; j++){
             cin >> A[i][j];
-    for (int i=1; i<m; i++)
-        for (int j=0; j<n; j++)
-            if (A[i][j]) A[i][j] = A[i-1][j] + 1;
-                else A[i][j] = 0;
-    // for (int i=0; i<m; i++){
-    //     for (int j=0; j<n; j++)
-    //         cout << A[i][j];
-    //     cout << endl;
-    // }
-    for (int i=0;i<m;i++) {
-       solve(A[i]);
-    }
-    cout << maxS;
-    return 0;
+            if (A[i][j] && i>0) A[i][j] = A[i-1][j] + 1; // nếu A[i][j] = 1 thì tăng chiều cao lên 1
+        }
+            
+}
+
+int main(){
+    input();   
+    for (int i=0;i<m;i++) solve(A[i]);
+    cout << result;
 }
